@@ -1,7 +1,7 @@
 import socket
 import select
 
-HEADER_LENGHT = 10
+HEADER_LENGTH = 10
 
 IP = "127.0.0.1"
 PORT = 1234
@@ -18,7 +18,7 @@ print(f'Listening for connections on {IP}:{PORT}')
 
 def receive_message(client_socket):
     try:
-        message_header = client_socket.recv(HEADER_LENGHT)
+        message_header = client_socket.recv(HEADER_LENGTH)
 
         if not len(message_header):
             return False
