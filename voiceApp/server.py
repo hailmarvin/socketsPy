@@ -23,9 +23,9 @@ def receive_voice_note(client_socket):
         if not len(voice_note_header):
             return False
 
-        voice_note_length = int(voice_note_header.decode("utf-8").strip())
+        voice_note_length = int(voice_note_header[:HEADER_LENGTH])
 
-        return {'header': voice_note_header, 'data': client_socket.recv(voice_note_length)}    
+        return {'header': voice_note_header[:HEADER_LENGTH], 'data': client_socket.recv(voice_note_length)}    
 
     except:
         # Something went wrong like empty voice_note or client exits abruptly
