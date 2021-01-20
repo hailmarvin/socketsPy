@@ -97,6 +97,8 @@ while True:
             voice_note_length = int(client_socket.recv(voice_note_header)[:HEADER_LENGTH])
             frames = []
 
+            # Need for debugging
+            # Having issues with sending voice note through sockets
             voicem = client_socket.recv(voice_note_length)
             voicem = pickle.loads(voicem)
             frames.append(voicem)
@@ -109,6 +111,8 @@ while True:
             wf.setframerate(fs)
             wf.writeframes(b''.join(frames))
             wf.close()
+
+            # Add autoplay functionality
 
             print(f'New Voice Note: {frames}')
 
