@@ -6,6 +6,7 @@ import wave
 import pickle
 import random
 import datetime
+import sys
 
 HEADER_LENGTH = 10
 
@@ -21,8 +22,8 @@ client_socket.connect((IP, PORT))
 # recv() not to block
 client_socket.setblocking(False)
 
-username = my_username.encode("utf-8")
-username_header = f"{len(username):<{HEADER_LENGTH}}".encode("utf-8")
+username = bytes(my_username, "utf-8")
+username_header = bytes(f"{len(username):<{HEADER_LENGTH}}", "utf-8")
 client_socket.send(username_header+username)
 
 chunk = 1024 #Record Chunks of 1024 samples
@@ -30,16 +31,6 @@ sample_format = pyaudio.paInt16 #16bits per sample
 channels = 2
 fs = 44100  # Record at 44100 samples per second
 seconds = 3
-# filename = "output.wav"
-
-# Save the recorded data as a WAV file
-# wf = wave.open(filename, 'wb')
-# wf.setnchannels(channels)
-# wf.setsampwidth(p.get_sample_size(sample_format))
-# wf.setframerate(fs)
-# wf.writeframes(b''.join(frames))
-# wf.close()
-# Not yet finished
 
 def record():
     # Create an interface to PortAudio
@@ -67,15 +58,13 @@ def record():
 
 
 while True:
-    message = input("Type anything to start recording > ")
+    message = input(f"{my_username}: Type anything to start recording > ")
 
     # Message not empty
     if message:
         print('Recording')
         frames = record()
         print('Finished recording')
-
-        # message = message.encode("utf-8")
         voice_note = pickle.dumps(frames)
         message_header = bytes(f"{len(voice_note):<{HEADER_LENGTH}}", "utf-8")+voice_note
         client_socket.send(message_header)
@@ -84,6 +73,7 @@ while True:
         # Loop over received messages
         while True:
             username_header = client_socket.recv(HEADER_LENGTH)
+            p = pyaudio.PyAudio() 
 
             if not len(username_header):
                 print('Connection closed by server')
@@ -91,21 +81,24 @@ while True:
 
             username_length = int(username_header.decode('utf-8').strip())
             username = client_socket.recv(username_length).decode('utf-8')
-            print(username_length)
 
             voice_note_header = client_socket.recv(HEADER_LENGTH)
-            voice_note_length = int(client_socket.recv(voice_note_header)[:HEADER_LENGTH])
+            voice_note_length = int(voice_note_header.decode('utf-8'))
             frames = []
 
-            # Need for debugging
-            # Having issues with sending voice note through sockets
-            voicem = client_socket.recv(voice_note_length)
-            voicem = pickle.loads(voicem)
+            voicem = client_socket.recv(voice_note_length)[HEADER_LENGTH:]
+            
+            # voicem = pickle.loads(voicem)
             frames.append(voicem)
-            timestring = str(datetime.datetime.now())
-            filename = f'{timestring}.wav'
+            timestring1 = str(datetime.datetime.now())
+            # Remove unwanted characters 
+            timestring2 = timestring1.replace("-", "")
+            timestring3 = timestring2.replace(":", "")
+            timestring4 = timestring3.replace(".", "")
+            timestring = timestring4.replace(" ", "")
+            timestring = f'{timestring}.wav'
 
-            wf = wave.open(filename, 'wb')
+            wf = wave.open(timestring, 'wb')
             wf.setnchannels(channels)
             wf.setsampwidth(p.get_sample_size(sample_format))
             wf.setframerate(fs)
@@ -114,7 +107,7 @@ while True:
 
             # Add autoplay functionality
 
-            print(f'New Voice Note: {frames}')
+            print(f'New Voice Note: {timestring} from : {username}')
 
     except IOError as e:
         # This is normal on non blocking connections - when there are no incoming data error is going to be raised
@@ -129,5 +122,5 @@ while True:
         continue
 
     except Exception as e:
-        print('Reading error: '.format(str(e)))
+        print('Reading error: {}'.format(str(e)))
         sys.exit()
