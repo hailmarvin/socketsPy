@@ -24,12 +24,11 @@ def receive_voice_note(client_socket):
             return False
 
         voice_note_length = int(voice_note_header[:HEADER_LENGTH])
-
-        return {'header': voice_note_header[:HEADER_LENGTH], 'data': client_socket.recv(voice_note_length)}    
+        return {'header': voice_note_header[:HEADER_LENGTH], 'data': client_socket.recv(voice_note_length)}
 
     except:
         # Something went wrong like empty voice_note or client exits abruptly
-        return False    
+        return False
 
 while True:
     read_sockets, _, exception_sockets = select.select(sockets_list, [], sockets_list)
@@ -40,16 +39,15 @@ while True:
             user = receive_voice_note(client_socket)
             if user == False:
                 continue
-            
+
             sockets_list.append(client_socket)
             clients[client_socket] = user
-            print('')
-        
+
         else:
             voice_note = receive_voice_note(notified_socket)
 
             if voice_note == False:
-                print('Closed connection from: {}'.format(clients[notified_socket]['data'].decode('utf-8')))
+                print('Closed connection from {}'.format(clients[notified_socket]['data'].decode('utf-8')))
                 sockets_list.remove(notified_socket)
                 del clients[notified_socket]
 
@@ -57,9 +55,9 @@ while True:
 
             # Iterate over connected clients and broadcast voice_note
             for client_socket in clients:
-
                 # But don't sent it to sender
                 if client_socket != notified_socket:
+                    print(user)
 
                     # Send user and voice_note (both with their headers)
                     # We are reusing here voice_note header sent by sender, and saved username header send by user when he connected
