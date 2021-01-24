@@ -1,6 +1,7 @@
 import socket
 import select
 import errno
+import sys
 
 HEADER_LENGTH = 10
 
@@ -61,5 +62,5 @@ while True:
         continue
 
     except Exception as e:
-        print('Reading error: '.format(str(e)))
+        print('Reading error: {}'.format(str(e)))
         sys.exit()
